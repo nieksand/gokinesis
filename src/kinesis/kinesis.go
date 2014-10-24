@@ -108,18 +108,18 @@ type Checkpointer struct {
 }
 
 // CheckpointAll marks all consumed messages as processed.
-func (cp *Checkpointer) CheckpointAll() {
+func (cp *Checkpointer) CheckpointAll() error {
 	msg := "\n{\"action\": \"checkpoint\", \"checkpoint\": null}\n"
-	cp.doCheckpoint(msg)
+	return cp.doCheckpoint(msg)
 }
 
 // CheckpointSeq marks messages up to sequence number as processed.
-func (cp *Checkpointer) CheckpointSeq(seqNum string) {
+func (cp *Checkpointer) CheckpointSeq(seqNum string) error {
 	msg := fmt.Sprintf("\n{\"action\": \"checkpoint\", \"checkpoint\": \"%s\"}\n", seqNum)
-	cp.doCheckpoint(msg)
+	return cp.doCheckpoint(msg)
 }
 
-func (cp *Checkpointer) doCheckpoint(msg string) {
+func (cp *Checkpointer) doCheckpoint(msg string) error {
 	if !cp.isAllowed {
 		panic("attempted to checkpoint on ZOMBIE termination")
 	}
@@ -130,6 +130,7 @@ func (cp *Checkpointer) doCheckpoint(msg string) {
 	// receive checkpoint ack
 	ack := getAction()
 
+	// exit on fatal, error out on retryable
 	if ack == nil {
 		fmt.Fprintf(os.Stderr, "Received EOF rather than checkpoint ack\n")
 		os.Exit(1)
@@ -137,9 +138,11 @@ func (cp *Checkpointer) doCheckpoint(msg string) {
 		fmt.Fprintf(os.Stderr, "Received invalid checkpoint ack: %s\n", ack.Action)
 		os.Exit(1)
 	} else if ack.Error != nil {
-		fmt.Fprintf(os.Stderr, "Checkpoint error: %s\n", ack.Error)
-		os.Exit(1)
+		return fmt.Errorf(*ack.Error)
 	}
+
+	// success
+	return nil
 }
 
 // KclRecord is an individual kinesis record.  Note that the body is always
