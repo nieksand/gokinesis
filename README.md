@@ -14,7 +14,7 @@ Some notes on this protocol can be found in the wiki:
 To build the example:
 
 1. cd gokinesis
-2. export GOPATH=`pwd`
+2. ``export GOPATH=`pwd` ``
 3. cd examples/trivial
 4. go build .
 
