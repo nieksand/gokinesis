@@ -31,9 +31,9 @@ import (
 	"os"
 )
 
-// RecordConsumer interface must be implemented and then used via Run().  A Go
-// KCL program may have only a single RecordConsumer launched.  The KCL daemon
-// will spawn additional programs as needed.
+// RecordConsumer interface must be implemented by Go KCL consumers and then
+// invoked using Run().  Only a single RecordConsumer should ever be Run() since
+// it depends on stdin/stdout for the MultiLangDaemon control protocol.
 type RecordConsumer interface {
 	// Init is called before record processing with the shardId.
 	Init(string) error
@@ -59,7 +59,8 @@ const (
 	ZombieShutdown
 )
 
-// Run consumes from the local Kinesis KCL daemon.
+// Run talks to the local KCL MultiLangDaemon using a request/reply protocol
+// over stdin/stdout.
 func Run(c RecordConsumer) {
 
 	checkpointer := &Checkpointer{true}
@@ -164,7 +165,7 @@ type KclAction struct {
 
 var scanner = bufio.NewScanner(os.Stdin)
 
-// getAction reads a request from the KCL daemon.
+// getAction reads a request from the KCL MultiLangDaemon.
 func getAction() *KclAction {
 	for scanner.Scan() {
 		// decode json action request
