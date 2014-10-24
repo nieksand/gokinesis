@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	//"encoding/base64"
 )
 
-// RecordConsumer interface must be implemented and then used via
-// LaunchConsumer().  A Go KCL program may have only a single RecordConsumer
-// launched.  The KCL daemon will spawn additional programs as needed.
+// RecordConsumer interface must be implemented and then used via Run().  A Go
+// KCL program may have only a single RecordConsumer launched.  The KCL daemon
+// will spawn additional programs as needed.
 type RecordConsumer interface {
 	// Init is called before record processing with the shardId.
 	Init(string) error
@@ -36,8 +35,10 @@ const (
 	ZombieShutdown
 )
 
-// LaunchConsumer consumes from the local Kinesis KCL daemon.
-func RunConsumer(c *RecordConsumer) {
+// Run consumes from the local Kinesis KCL daemon.
+func Run(c *RecordConsumer) {
+
+	checkpointer := &Checkpointer{true}
 
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -53,18 +54,18 @@ func RunConsumer(c *RecordConsumer) {
 		// dispatch based on action
 		switch {
 		case req.Action == "processRecords":
-			c.ProcessRecords(req.Records, checkpointer)
+			(*c).ProcessRecords(req.Records, checkpointer)
 
 		case req.Action == "initialize":
-			c.Init(req.ShardID)
+			(*c).Init(*req.ShardID)
 
 		case req.Action == "shutdown":
 			shutdownType := GracefulShutdown
-			if req.Reason == "ZOMBIE" {
+			if req.Reason == nil || *req.Reason == "ZOMBIE" {
 				checkpointer.isAllowed = false
 				shutdownType = ZombieShutdown
 			}
-			c.Shutdown(shutdownType, checkpointer)
+			(*c).Shutdown(shutdownType, checkpointer)
 
 		default:
 			panic(fmt.Sprintf("unsupported KCL action: %s", req.Action))
@@ -88,12 +89,12 @@ func (cp *Checkpointer) CheckpointAll() {
 	cp.doCheckpoint(msg)
 }
 
-func (cp *Checkpointer) CheckpointSeq(int64 seqNum) {
+func (cp *Checkpointer) CheckpointSeq(seqNum int64) {
 	msg := fmt.Sprintf(`\n{"action": "checkpoint", "checkpoint": %d}\n`, seqNum)
 	cp.doCheckpoint(msg)
 }
 
-func (cp *Checkpointer) doCheckpoint(msg) {
+func (cp *Checkpointer) doCheckpoint(msg string) {
 	if !cp.isAllowed {
 		panic("attempted to checkpoint on ZOMBIE termination")
 	}
@@ -112,9 +113,9 @@ type KclRecord struct {
 }
 
 type KclAction struct {
-	Action  string      `json:"action"`
-	ShardID *string     `json:"shardId"`
-	Records []KclRecord `json:"records"`
-	Reason  *string     `json:"reason"`
-	Error   *string     `json:"error"`
+	Action  string       `json:"action"`
+	ShardID *string      `json:"shardId"`
+	Records []*KclRecord `json:"records"`
+	Reason  *string      `json:"reason"`
+	Error   *string      `json:"error"`
 }
