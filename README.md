@@ -10,6 +10,11 @@ consumers.  It offers the same functionality as the official Python KCL:
 This is an unofficial KCL created outside of AWS.
 
 
+## Current State
+The consumer is able to process and checkpoint records.  There will be some
+additional testing done over the coming days before a 1.0 branch is cut.
+
+
 ## Quickstart
 To build the example:
 
