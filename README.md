@@ -1,16 +1,14 @@
 gokinesis
 =========
-Golang client library for Kinesis
+A Golang client library for AWS Kinesis.
 
-This was created by reverse-engineering the protocol used by the official Python
-client:
+Using the KCL MultiLangDaemon this supports everything needed to write Kinesis
+stream consumers.  It offers the same functionality as the official Python KCL:
+
     http://aws.amazon.com/blogs/aws/speak-to-kinesis-in-python/
 
-Some notes on this protocol can be found in the wiki:
-    https://github.com/nieksand/gokinesis/wiki/KCL-Protocol
 
-
-## Usage
+## Quickstart
 To build the example:
 
     cd gokinesis
@@ -18,18 +16,40 @@ To build the example:
     cd examples/trivial
     go build .
 
-Note that the KCL daemon uses stdin and stdout to communicate with the client.
-Any program output should go elsewhere (e.g. stderr or a file).
+See examples/trivial/README.md for instructions on how to invoke the KCL
+MultiLangDaemon on the trivial consumer demo.
 
-To run the example, see the documentation for the official Python client
-library.
+
+## Usage
+To write a consumer, write a struct satisfying the kinesis.RecordConsumer
+interface.
+
+1. ``Init(shardId string)`` is called at start.
+2. ``ProcessRecords(batch []*KclRecord, cp *Checkpointer)`` is invoked for each
+   batch of messages to be processed.
+3. ``Shutdown(t ShutdownType, cp *Checkpointer)`` is called at finish.  No
+   further calls to the RecordConsumer are made after this.  Implementations
+   must check the ShutdownType.  Invoke a checkpoint if it's graceful; do NOT 
+   checkpoint if it's ZOMBIE.
+
+If the implementation returns an non-nil error on any of these three methods,
+the Golang KCL will exit immediately with a non-zero exit code.
+
+The Checkpointer offers both CheckpointAll() and CheckpointSeq() methods.  The
+first checkpoints to the end of the most recent batch of records.  The latter
+checkpoints to a specific sequence number which is exposed in the KclRecord
+struct.
+
+An example of this is shown in examples/trivial/trivial.go
+
+Note: the KCL MultiLangDaemon uses stdin and stdout to communicate with the
+client.  Any consumer output should go elsewhere (e.g. stderr or a file).
 
 
 ## Design
-Originally I planned to use a channel for incoming records.  However the
-request/reply protocol used by the KCL daemon puts restrictions on when
-checkpointing can happen.  The current design resembles the approach taken by
-the official Python client library.
+The KCL MultiLangDaemon protocol restricts when checkpointing may happen.
+Accordingly, an interface approach rather than a Go channel is used for
+processing records.
 
 
 ## License
