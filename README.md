@@ -39,7 +39,8 @@ the Golang KCL will exit immediately with a non-zero exit code.
 
 In the Checkpointer, CheckpointAll() marks to the end of the most recently
 delivered batch of records.  CheckpointSeq() marks to a specific sequence
-number.
+number.  Checkpointing returns a non-nil error on conditions which can be
+retried.
 
 To begin processing, instantiate the struct and pass it to kinesis.Run().
 
