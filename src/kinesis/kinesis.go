@@ -39,16 +39,11 @@ const (
 func Run(c *RecordConsumer) {
 
 	checkpointer := &Checkpointer{true}
-
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-
-		// decode json action request
-		line := scanner.Bytes()
-		var req KclAction
-		if err := json.Unmarshal(line, &req); err != nil {
-			fmt.Fprintf(os.Stderr, "Could not understand line read from input: %s", line)
-			continue
+	for {
+		// read next daemon request
+		req := getAction()
+		if req == nil {
+			break
 		}
 
 		// dispatch based on action
@@ -126,4 +121,26 @@ type KclAction struct {
 	Records []*KclRecord `json:"records"`
 	Reason  *string      `json:"reason"`
 	Error   *string      `json:"error"`
+}
+
+var scanner = bufio.NewScanner(os.Stdin)
+
+func getAction() *KclAction {
+
+	for scanner.Scan() {
+		// decode json action request
+		line := scanner.Bytes()
+		var req KclAction
+		if err := json.Unmarshal(line, &req); err != nil {
+			fmt.Fprintf(os.Stderr, "Could not understand line read from input: %s", line)
+			continue
+		}
+		return &req
+	}
+
+	if err := scanner.Err(); err != nil {
+		panic("unable to read stdin")
+	}
+
+	return nil
 }
