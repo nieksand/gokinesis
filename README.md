@@ -2,8 +2,8 @@ gokinesis
 =========
 A Golang client library for AWS Kinesis.
 
-The KCL MultiLangDaemon this supports everything needed to write Kinesis stream
-consumers.  It offers the same functionality as the official Python KCL:
+The Golang KCL supports everything needed to write Kinesis stream consumers.  It
+offers the same functionality as the official Python KCL:
 
     http://aws.amazon.com/blogs/aws/speak-to-kinesis-in-python/
 
