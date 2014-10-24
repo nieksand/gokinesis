@@ -13,10 +13,10 @@ Some notes on this protocol can be found in the wiki:
 ## Usage
 To build the example:
 
-1. cd gokinesis
-2. ``export GOPATH=`pwd` ``
-3. cd examples/trivial
-4. go build .
+    cd gokinesis
+    export GOPATH=`pwd`
+    cd examples/trivial
+    go build .
 
 Note that the KCL daemon uses stdin and stdout to communicate with the client.
 Any program output should go elsewhere (e.g. stderr or a file).
