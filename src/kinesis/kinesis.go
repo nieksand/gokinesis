@@ -1,18 +1,18 @@
 /*
  * The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2014 Niek J. Sanders
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -101,16 +101,19 @@ func Run(c RecordConsumer) {
 	}
 }
 
+// Checkpointer marks a consumers progress.
 type Checkpointer struct {
 	// isAllowed controls whether checkpointing triggers a panic.
 	isAllowed bool
 }
 
+// CheckpointAll marks all consumed messages as processed.
 func (cp *Checkpointer) CheckpointAll() {
 	msg := "\n{\"action\": \"checkpoint\", \"checkpoint\": null}\n"
 	cp.doCheckpoint(msg)
 }
 
+// CheckpointSeq marks messages up to sequence number as processed.
 func (cp *Checkpointer) CheckpointSeq(seqNum int64) {
 	msg := fmt.Sprintf("\n{\"action\": \"checkpoint\", \"checkpoint\": %d}\n", seqNum)
 	cp.doCheckpoint(msg)
@@ -139,12 +142,15 @@ func (cp *Checkpointer) doCheckpoint(msg string) {
 	}
 }
 
+// KclRecord is an individual kinesis record.  Note that the body is always
+// base64 encoded.
 type KclRecord struct {
 	DataB64        string `json:"data"`
 	PartitionKey   string `json:"partitionKey"`
 	SequenceNumber int64  `json:"sequenceNumber,string"`
 }
 
+// KclAction is a request from the local KCL daemon.
 type KclAction struct {
 	Action  string       `json:"action"`
 	ShardID *string      `json:"shardId"`
@@ -155,8 +161,8 @@ type KclAction struct {
 
 var scanner = bufio.NewScanner(os.Stdin)
 
+// getAction reads a request from the KCL daemon.
 func getAction() *KclAction {
-
 	for scanner.Scan() {
 		// decode json action request
 		line := scanner.Bytes()
