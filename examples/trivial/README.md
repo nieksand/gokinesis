@@ -11,6 +11,16 @@ On Shutdown() it verifies that we are not a zombie and calls a final checkpoint.
 
 
 ## Usage
-1. Ensure the Golang KCL is in your GOPATH.  
-2. ``go build .``
-3. complicated magic to invoke KCL MultiLangDaemon
+Install the KCL MultiLangDaemon using the instructions from the official AWS
+Python KCL readme.
+
+* Ensure the Golang KCL is in your GOPATH.  
+
+* ``go build .``
+
+* From the Python KCL samples directory, use the helper script to generate the
+  launch command.  Be sure to set this ``--java`` path properly.
+
+    python amazon_kclpy_helper.py --print_command --java /usr/bin/java --properties ./sample.properties
+
+* Copy/paste the output to execute..
