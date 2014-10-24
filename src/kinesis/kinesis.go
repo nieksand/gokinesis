@@ -64,7 +64,7 @@ func Run(c *RecordConsumer) {
 			err = (*c).Shutdown(shutdownType, checkpointer)
 
 		default:
-			err = fmt.Errorf("unsupported KCL action: %s", req.Action)
+			err = fmt.Errorf("Unsupported KCL action: %s", req.Action)
 		}
 
 		if err != nil {
@@ -74,11 +74,6 @@ func Run(c *RecordConsumer) {
 
 		// respond with ack
 		fmt.Printf(`\n{"action": "status", "responseFor": "%s"}\n`, req.Action)
-	}
-	if err := scanner.Err(); err != nil {
-		panic("unable to read stdin")
-		fmt.Fprintf(os.Stderr, "unable to read stdin")
-		os.Exit(1)
 	}
 }
 
@@ -106,7 +101,18 @@ func (cp *Checkpointer) doCheckpoint(msg string) {
 	fmt.Print(msg)
 
 	// receive checkpoint ack
-	// FIXME
+	ack := getAction()
+
+	if ack == nil {
+		fmt.Fprintf(os.Stderr, "Received EOF rather than checkpoint ack")
+		os.Exit(1)
+	} else if ack.Action != "checkpoint" {
+		fmt.Fprintf(os.Stderr, "Received invalid checkpoint ack: %s", ack.Action)
+		os.Exit(1)
+	} else if ack.Error != nil {
+		fmt.Fprintf(os.Stderr, "Checkpoint error: %s", ack.Error)
+		os.Exit(1)
+	}
 }
 
 type KclRecord struct {
