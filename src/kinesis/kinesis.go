@@ -36,7 +36,7 @@ const (
 )
 
 // Run consumes from the local Kinesis KCL daemon.
-func Run(c *RecordConsumer) {
+func Run(c RecordConsumer) {
 
 	checkpointer := &Checkpointer{true}
 	for {
@@ -50,10 +50,10 @@ func Run(c *RecordConsumer) {
 		var err error
 		switch {
 		case req.Action == "processRecords":
-			err = (*c).ProcessRecords(req.Records, checkpointer)
+			err = c.ProcessRecords(req.Records, checkpointer)
 
 		case req.Action == "initialize":
-			err = (*c).Init(*req.ShardID)
+			err = c.Init(*req.ShardID)
 
 		case req.Action == "shutdown":
 			shutdownType := GracefulShutdown
@@ -61,7 +61,7 @@ func Run(c *RecordConsumer) {
 				checkpointer.isAllowed = false
 				shutdownType = ZombieShutdown
 			}
-			err = (*c).Shutdown(shutdownType, checkpointer)
+			err = c.Shutdown(shutdownType, checkpointer)
 
 		default:
 			err = fmt.Errorf("Unsupported KCL action: %s", req.Action)
@@ -73,7 +73,7 @@ func Run(c *RecordConsumer) {
 		}
 
 		// respond with ack
-		fmt.Printf(`\n{"action": "status", "responseFor": "%s"}\n`, req.Action)
+		fmt.Printf("\n{\"action\": \"status\", \"responseFor\": \"%s\"}\n", req.Action)
 	}
 }
 
@@ -83,12 +83,12 @@ type Checkpointer struct {
 }
 
 func (cp *Checkpointer) CheckpointAll() {
-	msg := `\n{"action": "checkpoint", "checkpoint": null}\n`
+	msg := "\n{\"action\": \"checkpoint\", \"checkpoint\": null}\n"
 	cp.doCheckpoint(msg)
 }
 
 func (cp *Checkpointer) CheckpointSeq(seqNum int64) {
-	msg := fmt.Sprintf(`\n{"action": "checkpoint", "checkpoint": %d}\n`, seqNum)
+	msg := fmt.Sprintf("\n{\"action\": \"checkpoint\", \"checkpoint\": %d}\n", seqNum)
 	cp.doCheckpoint(msg)
 }
 
@@ -104,13 +104,13 @@ func (cp *Checkpointer) doCheckpoint(msg string) {
 	ack := getAction()
 
 	if ack == nil {
-		fmt.Fprintf(os.Stderr, "Received EOF rather than checkpoint ack")
+		fmt.Fprintf(os.Stderr, "Received EOF rather than checkpoint ack\n")
 		os.Exit(1)
 	} else if ack.Action != "checkpoint" {
-		fmt.Fprintf(os.Stderr, "Received invalid checkpoint ack: %s", ack.Action)
+		fmt.Fprintf(os.Stderr, "Received invalid checkpoint ack: %s\n", ack.Action)
 		os.Exit(1)
 	} else if ack.Error != nil {
-		fmt.Fprintf(os.Stderr, "Checkpoint error: %s", ack.Error)
+		fmt.Fprintf(os.Stderr, "Checkpoint error: %s\n", ack.Error)
 		os.Exit(1)
 	}
 }
@@ -118,7 +118,7 @@ func (cp *Checkpointer) doCheckpoint(msg string) {
 type KclRecord struct {
 	DataB64        string `json:"data"`
 	PartitionKey   string `json:"partitionKey"`
-	SequenceNumber int64  `json:"sequenceNumber"`
+	SequenceNumber int64  `json:"sequenceNumber,string"`
 }
 
 type KclAction struct {
@@ -138,7 +138,7 @@ func getAction() *KclAction {
 		line := scanner.Bytes()
 		var req KclAction
 		if err := json.Unmarshal(line, &req); err != nil {
-			fmt.Fprintf(os.Stderr, "Could not understand line read from input: %s", line)
+			fmt.Fprintf(os.Stderr, "Could not understand line read from input: %s\n", line)
 			continue
 		}
 		return &req
