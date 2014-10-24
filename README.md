@@ -7,6 +7,8 @@ stream consumers.  It offers the same functionality as the official Python KCL:
 
     http://aws.amazon.com/blogs/aws/speak-to-kinesis-in-python/
 
+This is an unofficial KCL implementation created outside of AWS.
+
 
 ## Quickstart
 To build the example:
@@ -21,7 +23,7 @@ MultiLangDaemon on the trivial consumer demo.
 
 
 ## Usage
-To write a consumer, write a struct satisfying the kinesis.RecordConsumer
+To write a consumer, implement a struct satisfying the kinesis.RecordConsumer
 interface.
 
 1. ``Init(shardId string)`` is called at start.
@@ -29,27 +31,33 @@ interface.
    batch of messages to be processed.
 3. ``Shutdown(t ShutdownType, cp *Checkpointer)`` is called at finish.  No
    further calls to the RecordConsumer are made after this.  Implementations
-   must check the ShutdownType.  Invoke a checkpoint if it's graceful; do NOT 
+   must check the ShutdownType.  Invoke a checkpoint if it's graceful; do NOT
    checkpoint if it's ZOMBIE.
 
 If the implementation returns an non-nil error on any of these three methods,
 the Golang KCL will exit immediately with a non-zero exit code.
 
-The Checkpointer offers both CheckpointAll() and CheckpointSeq() methods.  The
-first checkpoints to the end of the most recent batch of records.  The latter
-checkpoints to a specific sequence number which is exposed in the KclRecord
-struct.
+In the Checkpointer, CheckpointAll() marks to the end of the most recently
+delivered batch of records.  CheckpointSeq() marks to a specific sequence
+number.
+
+To begin processing, instantiate the struct and pass it to kinesis.Run().
 
 An example of this is shown in examples/trivial/trivial.go
 
-Note: the KCL MultiLangDaemon uses stdin and stdout to communicate with the
+**Note:** there should be only a single RecordProcessor and invocation of
+kinesis.Run().  The MultiLangDaemon protocol uses stdin/stdout to communicate
+and does not support multiple consumers in one process.  Instead, it spawns
+multiple independent processes which are each assigned a single shard.
+
+**Note:** the KCL MultiLangDaemon uses stdin and stdout to communicate with the
 client.  Any consumer output should go elsewhere (e.g. stderr or a file).
 
 
 ## Design
 The KCL MultiLangDaemon protocol restricts when checkpointing may happen.
-Accordingly, an interface approach rather than a Go channel is used for
-processing records.
+Accordingly, an interface and controller function rather than a Go channel is
+used for processing records.
 
 
 ## License
