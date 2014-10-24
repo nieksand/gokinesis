@@ -10,6 +10,28 @@ Some notes on this protocol can be found in the wiki:
     https://github.com/nieksand/gokinesis/wiki/KCL-Protocol
 
 
+## Usage
+To build the example:
+
+1. cd gokinesis
+2. export GOPATH=`pwd`
+3. cd examples/trivial
+4. go build .
+
+Note that the KCL daemon uses stdin and stdout to communicate with the client.
+Any program output should go elsewhere (e.g. stderr or a file).
+
+To run the example, see the documentation for the official Python client
+library.
+
+
+## Design
+Originally I planned to use a channel for incoming records.  However the
+request/reply protocol used by the KCL daemon puts restrictions on when
+checkpointing can happen.  The current design resembles the approach taken by
+the official Python client library.
+
+
 ## License
 The MIT License (MIT)
 
