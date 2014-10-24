@@ -7,7 +7,7 @@ stream consumers.  It offers the same functionality as the official Python KCL:
 
     http://aws.amazon.com/blogs/aws/speak-to-kinesis-in-python/
 
-This is an unofficial KCL implementation created outside of AWS.
+This is an unofficial KCL created outside of AWS.
 
 
 ## Quickstart
