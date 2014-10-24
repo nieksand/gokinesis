@@ -12,17 +12,24 @@ import (
 )
 
 type EchoConsumer struct {
+	outfile		*os.File
 }
 
 func (ec *EchoConsumer) Init(shardId string) error {
-	fmt.Fprintf(os.Stderr, "init: %s\n", shardId)
+	var err error
+	ec.outfile, err = os.Create( fmt.Sprintf("/tmp/%s.demo", shardId) )
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(ec.outfile, "init: %s\n", shardId)
 	return nil
 }
 
 func (ec *EchoConsumer) ProcessRecords(records []*kinesis.KclRecord,
 	checkpointer *kinesis.Checkpointer) error {
 	for i := range records {
-		fmt.Fprintf(os.Stderr, "process: %s\n", records[i].DataB64)
+		fmt.Fprintf(ec.outfile, "process: %s\n", records[i].DataB64)
 	}
 	checkpointer.CheckpointAll()
 	return nil
@@ -30,7 +37,7 @@ func (ec *EchoConsumer) ProcessRecords(records []*kinesis.KclRecord,
 
 func (ec *EchoConsumer) Shutdown(shutdownType kinesis.ShutdownType,
 	checkpointer *kinesis.Checkpointer) error {
-	fmt.Fprintf(os.Stderr, "shutdown: %s\n", shutdownType)
+	fmt.Fprintf(ec.outfile, "shutdown: %s\n", shutdownType)
 	if shutdownType == kinesis.GracefulShutdown {
 		checkpointer.CheckpointAll()
 	}
