@@ -6,7 +6,6 @@ import (
 )
 
 type EchoConsumer struct {
-	numProcessed	int64
 }
 
 func (ec *EchoConsumer) Init(shardId string) error {
@@ -18,12 +17,6 @@ func (ec *EchoConsumer) ProcessRecords(records []*kinesis.KclRecord,
 	checkpointer *kinesis.Checkpointer) error {
 	for i := range records {
 		fmt.Printf("process: %s\n", records[i].DataB64)
-		ec.numProcessed++
-	}
-
-	// just for fun
-	if ec.numProcessed % 3 == 0 {
-		checkpointer.CheckpointAll()
 	}
 	return nil
 }
