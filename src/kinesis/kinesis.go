@@ -52,12 +52,13 @@ func Run(c *RecordConsumer) {
 		}
 
 		// dispatch based on action
+		var err error
 		switch {
 		case req.Action == "processRecords":
-			(*c).ProcessRecords(req.Records, checkpointer)
+			err = (*c).ProcessRecords(req.Records, checkpointer)
 
 		case req.Action == "initialize":
-			(*c).Init(*req.ShardID)
+			err = (*c).Init(*req.ShardID)
 
 		case req.Action == "shutdown":
 			shutdownType := GracefulShutdown
@@ -65,10 +66,15 @@ func Run(c *RecordConsumer) {
 				checkpointer.isAllowed = false
 				shutdownType = ZombieShutdown
 			}
-			(*c).Shutdown(shutdownType, checkpointer)
+			err = (*c).Shutdown(shutdownType, checkpointer)
 
 		default:
-			panic(fmt.Sprintf("unsupported KCL action: %s", req.Action))
+			err = fmt.Errorf("unsupported KCL action: %s", req.Action)
+		}
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err)
+			os.Exit(1)
 		}
 
 		// respond with ack
@@ -76,6 +82,8 @@ func Run(c *RecordConsumer) {
 	}
 	if err := scanner.Err(); err != nil {
 		panic("unable to read stdin")
+		fmt.Fprintf(os.Stderr, "unable to read stdin")
+		os.Exit(1)
 	}
 }
 
