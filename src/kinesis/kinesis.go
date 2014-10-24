@@ -114,8 +114,8 @@ func (cp *Checkpointer) CheckpointAll() {
 }
 
 // CheckpointSeq marks messages up to sequence number as processed.
-func (cp *Checkpointer) CheckpointSeq(seqNum int64) {
-	msg := fmt.Sprintf("\n{\"action\": \"checkpoint\", \"checkpoint\": %d}\n", seqNum)
+func (cp *Checkpointer) CheckpointSeq(seqNum string) {
+	msg := fmt.Sprintf("\n{\"action\": \"checkpoint\", \"checkpoint\": \"%s\"}\n", seqNum)
 	cp.doCheckpoint(msg)
 }
 
@@ -147,7 +147,7 @@ func (cp *Checkpointer) doCheckpoint(msg string) {
 type KclRecord struct {
 	DataB64        string `json:"data"`
 	PartitionKey   string `json:"partitionKey"`
-	SequenceNumber int64  `json:"sequenceNumber,string"`
+	SequenceNumber string `json:"sequenceNumber"`
 }
 
 // KclAction is a request from the local KCL daemon.
