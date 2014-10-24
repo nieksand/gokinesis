@@ -9,23 +9,23 @@ type EchoConsumer struct {
 }
 
 func (ec *EchoConsumer) Init(shardId string) error {
-	fmt.Println("init: %s", shardId)
+	fmt.Printf("init: %s\n", shardId)
 	return nil
 }
 
 func (ec *EchoConsumer) ProcessRecords(records []*kinesis.KclRecord,
 			 checkpointer *kinesis.Checkpointer) error {
 	for i := range records {
-		fmt.Println("process: %s", records[i].DataB64)
+		fmt.Printf("process: %s\n", records[i].DataB64)
 	}
 
-	checkpointer.CheckpointAll()
+	//checkpointer.CheckpointAll()
 	return nil
 }
 
 func (ec *EchoConsumer) Shutdown(shutdownType kinesis.ShutdownType,
 		checkpointer *kinesis.Checkpointer) error {
-	fmt.Println("shutdown: %s", )
+	fmt.Printf("shutdown: %s\n", )
 	if shutdownType == kinesis.GracefulShutdown {
 		checkpointer.CheckpointAll()
 	}
