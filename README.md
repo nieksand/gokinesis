@@ -11,8 +11,11 @@ This is an unofficial KCL created outside of AWS.
 
 
 ## Current State
-The consumer is able to process and checkpoint records.  There will be some
-additional testing done over the coming days before a 1.0 branch is cut.
+The Golang KCL has been tested for basic functionality.  It can consume records,
+checkpoint, and handle shard creation and merges.
+
+However, it has not been used in any production applications.  Feedback and bug
+reports can be submitted through Github Issues and are greatly appreciated.
 
 
 ## Quickstart
