@@ -17,6 +17,7 @@ checkpoint, and handle shard creation and merges.
 However, it has not been used in any production applications.  Feedback and bug
 reports can be submitted through Github Issues and are greatly appreciated.
 
+For a production tested alternative: https://github.com/sendgridlabs/go-kinesis
 
 ## Quickstart
 To build the example:
