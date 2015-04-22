@@ -26,6 +26,7 @@ package kinesis
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -163,24 +164,25 @@ type KclAction struct {
 	Error   *string      `json:"error"`
 }
 
-var scanner = bufio.NewScanner(os.Stdin)
-
 // getAction reads a request from the KCL MultiLangDaemon.
 func getAction() *KclAction {
-	for scanner.Scan() {
-		// decode json action request
-		line := scanner.Bytes()
-		var req KclAction
-		if err := json.Unmarshal(line, &req); err != nil {
-			fmt.Fprintf(os.Stderr, "Could not understand line read from input: %s\n", line)
-			continue
+	bio := bufio.NewReader(os.Stdin)
+	var buffer bytes.Buffer
+	for {
+		linePart, hasMoreInLine, err := bio.ReadLine()
+		if err != nil {
+			panic("Unable to read line from stdin " + err.Error())
 		}
-		return &req
+		buffer.Write(linePart)
+		if hasMoreInLine == false {
+			break
+		}
 	}
 
-	if err := scanner.Err(); err != nil {
-		panic("unable to read stdin")
+	var req KclAction
+	err := json.Unmarshal(buffer.Bytes(), &req)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not understand line read from input: %s\n", buffer.String())
 	}
-
-	return nil
+	return &req
 }
