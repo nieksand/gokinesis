@@ -14,10 +14,9 @@ This is an unofficial KCL created outside of AWS.
 The Golang KCL has been tested for basic functionality.  It can consume records,
 checkpoint, and handle shard creation and merges.
 
-However, it has not been used in any production applications.  Feedback and bug
-reports can be submitted through Github Issues and are greatly appreciated.
+Feedback and bug reports can be submitted through Github Issues and are greatly
+appreciated.
 
-For a production tested alternative: https://github.com/sendgridlabs/go-kinesis
 
 ## Quickstart
 To build the example:
@@ -73,7 +72,7 @@ used for processing records.
 ## License
 The MIT License (MIT)
 
-Copyright (c) 2014 Niek J. Sanders
+Copyright (c) 2014-2015 Niek J. Sanders
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
